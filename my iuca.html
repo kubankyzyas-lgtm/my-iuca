@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcript - My IUCA</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        body {
+            background-color: #ffffff;
+            color: #333333;
+            font-size: 14px;
+            padding-bottom: 60px;
+        }
+
+        /* Навигационная панель (Шапка) */
+        header {
+            background-color: #002D62; /* Темно-синий IUCA */
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 40px;
+            position: relative;
+            z-index: 1000;
+        }
+
+        .nav-left, .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        /* Выпадающее меню Transcripts */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-btn {
+            background: transparent;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 6px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .dropdown-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background-color: #ffffff;
+            min-width: 220px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.15);
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-top: 5px;
+        }
+
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .dropdown-content a {
+            color: #333;
+            padding: 10px 15px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f5f5f5;
+        }
+
+        .nav-right a, .nav-right span {
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .nav-right .user-name {
+            font-weight: 500;
+        }
+
+        .nav-right .college-select {
+            background: transparent;
+            color: white;
+            border: none;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Контентная часть */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        h1.page-title {
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 25px;
+            color: #333;
+        }
+
+        /* Информация о студенте */
+        .student-info {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 35px;
+            background: #fdfdfd;
+            padding: 15px;
+            border-radius: 4px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .info-block {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-size: 12px;
+            color: #777;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        /* Сетка семестров */
+        .semester-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        @media (max-width: 900px) {
+            .semester-grid {
+                grid-template-columns: 1fr;
+            }
+            .student-info {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .semester-card {
+            background: #fff;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .semester-header {
+            background-color: #CCE3F5; /* Светло-голубой заголовок семестра */
+            color: #002D62;
+            text-align: center;
+            padding: 8px;
+            font-weight: bold;
+            font-size: 14px;
+            border: 1px solid #b8d2e8;
+        }
+
+        /* Таблицы курсов */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 6px 4px;
+            color: #555;
+            font-weight: 600;
+            border-bottom: 1px solid #ddd;
+        }
+
+        td {
+            padding: 6px 4px;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .col-abbr { width: 12%; }
+        .col-num { width: 12%; }
+        .col-id { width: 12%; }
+        .col-name { width: 44%; }
+        .col-grade { width: 10%; text-align: center; }
+        .col-cred { width: 10%; text-align: center; }
+
+        th.col-grade, th.col-cred { text-align: center; }
+
+        /* Итоги семестра */
+        .semester-summary {
+            margin-top: 10px;
+            padding: 8px 5px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            font-size: 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            font-weight: 500;
+            color: #444;
+        }
+
+        .summary-item span {
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Блок Cumulative */
+        .cumulative-box {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 4px;
+            max-width: 400px;
+            margin-top: 20px;
+        }
+
+        .cumulative-box h3 {
+            margin-bottom: 10px;
+            font-size: 15px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+        }
+
+        .cumulative-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+        }
+
+        /* Футер */
+        footer {
+            border-top: 1px solid #eee;
+            padding: 20px;
+            text-align: left;
+            color: #777;
+            font-size: 13px;
+            max-width: 1200px;
+            margin: 40px auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Навигация -->
+    <header>
+        <div class="nav-left">
+            <div class="dropdown">
+                <button class="dropdown-btn">Transcripts ▾</button>
+                <div class="dropdown-content">
+                    <a href="#">Transcript</a>
+                    <a href="#">Courses per semester</a>
+                    <a href="#">English level tests</a>
+                    <a href="#">Schedule</a>
+                </div>
+            </div>
+        </div>
+        <div class="nav-right">
+            <select class="college-select">
+                <option>Колледж МУЦА</option>
+            </select>
+            <span class="user-name">Kuban kyzy Daminur</span>
+            <a href="#">Sign out</a>
+        </div>
+    </header>
+
+    <!-- Основной контейнер -->
+    <div class="container">
+        <h1 class="page-title">Transcript</h1>
+
+        <!-- Данные студента -->
+        <div class="student-info">
+            <div class="info-block">
+                <span class="info-label">Student Name</span>
+                <span class="info-value">Kuban kyzy Daminur</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Student ID</span>
+                <span class="info-value">1894</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Date of birth</span>
+                <span class="info-value">23-апр.-2009</span>
+            </div>
+            <div class="info-block">
+                <span class="info-label">Major</span>
+                <span class="info-value">Software of computer facilities and automated systems</span>
+            </div>
+        </div>
+
+        <!-- Сетка семестров -->
+        <div class="semester-grid">
+
+            <!-- 2024 Осенний (Fall) -->
+            <div class="semester-card">
+                <div class="semester-header">2024 Осенний (Fall)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>CHM</td><td>101</td><td>617</td><td>Chemistry</td><td class="col-grade">B+</td><td class="col-cred">2</td></tr>
+                        <tr><td>COM</td><td>102</td><td>679</td><td>Intro to computer</td><td class="col-grade">B+</td><td class="col-cred">2</td></tr>
+                        <tr><td>ENG</td><td>101</td><td>611</td><td>English Language I</td><td class="col-grade">C-</td><td class="col-cred">2</td></tr>
+                        <tr><td>ENG</td><td>111</td><td>1215</td><td>Intensive English (elective)</td><td class="col-grade">D</td><td class="col-cred">6</td></tr>
+                        <tr><td>GEO</td><td>101</td><td>618</td><td>Geography</td><td class="col-grade">A-</td><td class="col-cred">2</td></tr>
+                        <tr><td>KRL</td><td>101</td><td>1211</td><td>Kyrgyz language</td><td class="col-grade">B-</td><td class="col-cred">3</td></tr>
+                        <tr><td>KRLL</td><td>101</td><td>1212</td><td>Kyrgyz Literature</td><td class="col-grade">B-</td><td class="col-cred">1</td></tr>
+                        <tr><td>MATA</td><td>101</td><td>1216</td><td>Mathematics (algebra)</td><td class="col-grade">C-</td><td class="col-cred">3</td></tr>
+                        <tr><td>MATG</td><td>101</td><td>1217</td><td>Mathematics (geometry)</td><td class="col-grade">D-</td><td class="col-cred">1</td></tr>
+                        <tr><td>MIL</td><td>101</td><td>620</td><td>Pre-Conscription Military Training</td><td class="col-grade">B+</td><td class="col-cred">2</td></tr>
+                        <tr><td>PBS</td><td>101</td><td>619</td><td>Physical Training</td><td class="col-grade">P</td><td class="col-cred">2</td></tr>
+                        <tr><td>RLT</td><td>101</td><td>1214</td><td>World (russian) literature</td><td class="col-grade">B</td><td class="col-cred">3</td></tr>
+                        <tr><td>RUS</td><td>101</td><td>1213</td><td>Russian language</td><td class="col-grade">C</td><td class="col-cred">2</td></tr>
+                        <tr><td>SCI</td><td>101</td><td>1616</td><td>Physics 1</td><td class="col-grade">C</td><td class="col-cred">3</td></tr>
+                        <tr><td>WHIS</td><td>111</td><td>1060</td><td>World History</td><td class="col-grade">B</td><td class="col-cred">2</td></tr>
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>34,00</span></div>
+                    <div class="summary-item">Earned: <span>36,00</span></div>
+                    <div class="summary-item">Attempted: <span>36,00</span></div>
+                    <div class="summary-item">Points: <span>46,02</span></div>
+                    <div class="summary-item">GPA: <span>1,35</span></div>
+                </div>
+            </div>
+
+            <!-- 2025 Весенний (Spring) -->
+            <div class="semester-card">
+                <div class="semester-header">2025 Весенний (Spring)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>BIO</td><td>102</td><td>675</td><td>Biology</td><td class="col-grade">A-</td><td class="col-cred">2</td></tr>
+                        <tr><td>CHM</td><td>102</td><td>686</td><td>Chemistry II</td><td class="col-grade">B</td><td class="col-cred">2</td></tr>
+                        <tr><td>COM</td><td>102</td><td>1236</td><td>Intro to computer</td><td class="col-grade">B-</td><td class="col-cred">3</td></tr>
+                        <tr><td>COM</td><td>112</td><td>1237</td><td>Intro to IT</td><td class="col-grade">C</td><td class="col-cred">4</td></tr>
+                        <tr><td>ENG</td><td>102</td><td>672</td><td>English language II</td><td class="col-grade">B-</td><td class="col-cred">2</td></tr>
+                        <tr><td>ENG</td><td>112</td><td>1232</td><td>Intensive English (elective)</td><td class="col-grade">C+</td><td class="col-cred">6</td></tr>
+                        <tr><td>HAS</td><td>101</td><td>614</td><td>Human and Society</td><td class="col-grade">B-</td><td class="col-cred">2</td></tr>
+                        <tr><td>KgHS</td><td>112</td><td>1061</td><td>History of Kyrgyzstan</td><td class="col-grade">B</td><td class="col-cred">2</td></tr>
+                        <tr><td>KRL</td><td>102</td><td>1228</td><td>Kyrgyz language</td><td class="col-grade">B+</td><td class="col-cred">4</td></tr>
+                        <tr><td>KRLL</td><td>102</td><td>1229</td><td>Kyrgyz literature</td><td class="col-grade">A-</td><td class="col-cred">1</td></tr>
+                        <tr><td>MATA</td><td>102</td><td>1233</td><td>Mathematics (algebra)</td><td class="col-grade">C-</td><td class="col-cred">3</td></tr>
+                        <tr><td>MATG</td><td>102</td><td>1234</td><td>Mathematics (geometry)</td><td class="col-grade">D-</td><td class="col-cred">1</td></tr>
+                        <tr><td>MIL</td><td>102</td><td>685</td><td>Pre-Conscription Military Training</td><td class="col-grade">A-</td><td class="col-cred">2</td></tr>
+                        <tr><td>PBS</td><td>102</td><td>684</td><td>Physical training</td><td class="col-grade">P</td><td class="col-cred">2</td></tr>
+                        <tr><td>RLT</td><td>102</td><td>1231</td><td>Russian (world) literature</td><td class="col-grade">D-</td><td class="col-cred">3</td></tr>
+                        <tr><td>RUS</td><td>102</td><td>1230</td><td>Russian language</td><td class="col-grade">B</td><td class="col-cred">2</td></tr>
+                        <tr><td>SCI</td><td>102</td><td>678</td><td>Astronomy</td><td class="col-grade">C</td><td class="col-cred">1</td></tr>
+                        <tr><td>SCI</td><td>102</td><td>1235</td><td>Physics</td><td class="col-grade">C</td><td class="col-cred">2</td></tr>
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>42,00</span></div>
+                    <div class="summary-item">Earned: <span>42,00</span></div>
+                    <div class="summary-item">Attempted: <span>44,00</span></div>
+                    <div class="summary-item">Points: <span>52,07</span></div>
+                    <div class="summary-item">GPA: <span>1,24</span></div>
+                </div>
+            </div>
+
+            <!-- 2025 Летний (Summer) -->
+            <div class="semester-card">
+                <div class="semester-header">2025 Летний (Summer)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>INT</td><td>252</td><td>836</td><td>Internship I</td><td class="col-grade">A</td><td class="col-cred">3</td></tr>
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>3,00</span></div>
+                    <div class="summary-item">Earned: <span>3,00</span></div>
+                    <div class="summary-item">Attempted: <span>3,00</span></div>
+                    <div class="summary-item">Points: <span>12,00</span></div>
+                    <div class="summary-item">GPA: <span>4,00</span></div>
+                </div>
+            </div>
+
+            <!-- 2025 Осенний (Fall) -->
+            <div class="semester-card">
+                <div class="semester-header">2025 Осенний (Fall)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>EBE</td><td>203</td><td>1176</td><td>Basics ecology</td><td class="col-grade">C+</td><td class="col-cred">2</td></tr>
+                        <tr><td>ENG</td><td>201</td><td>715</td><td>English language</td><td class="col-grade">C</td><td class="col-cred">2</td></tr>
+                        <tr><td>ENG</td><td>213</td><td>989</td><td>English for spec Purposes (electiv)</td><td class="col-grade">B-</td><td class="col-cred">4</td></tr>
+                        <tr><td>HIS</td><td>203</td><td>943</td><td>History of Kyrgyzstan</td><td class="col-grade">B+</td><td class="col-cred">2</td></tr>
+                        <tr><td>ITC</td><td>202</td><td>714</td><td>Intro to design of automated info systems</td><td class="col-grade">B</td><td class="col-cred">4</td></tr>
+                        <tr><td>MAT</td><td>213</td><td>1076</td><td>Professional mathematics</td><td class="col-grade">C+</td><td class="col-cred">2</td></tr>
+                        <tr><td>OOP</td><td>211</td><td>1177</td><td>Object-oriented programming</td><td class="col-grade">A-</td><td class="col-cred">5</td></tr>
+                        <tr><td>PBS</td><td>201</td><td>731</td><td>Physical training</td><td class="col-grade">P</td><td class="col-cred">2</td></tr>
+                        <tr><td>POL</td><td>305</td><td>808</td><td>Philosophy</td><td class="col-grade">B-</td><td class="col-cred">3</td></tr>
+                        <tr><td>PRG</td><td>211</td><td>1178</td><td>Phyton programming language</td><td class="col-grade">B-</td><td class="col-cred">4</td></tr>
+                        <tr><td>RUS</td><td>201</td><td>713</td><td>Russian language</td><td class="col-grade">F</td><td class="col-cred">2</td></tr>
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>28,00</span></div>
+                    <div class="summary-item">Earned: <span>28,00</span></div>
+                    <div class="summary-item">Attempted: <span>32,00</span></div>
+                    <div class="summary-item">Points: <span>33,06</span></div>
+                    <div class="summary-item">GPA: <span>1,18</span></div>
+                </div>
+            </div>
+
+            <!-- 2026 Весенний (Spring) -->
+            <div class="semester-card">
+                <div class="semester-header">2026 Весенний (Spring)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>CGM</td><td>214</td><td>1189</td><td>Computer graphics and multimedia</td><td class="col-grade">B-</td><td class="col-cred">2</td></tr>
+                        <tr><td>COM</td><td>204</td><td>1191</td><td>Technical means of informatization</td><td class="col-grade">B+</td><td class="col-cred">4</td></tr>
+                        <tr><td>COM</td><td>244</td><td>1192</td><td>Basics of algorrithmization and programming</td><td class="col-grade">C+</td><td class="col-cred">4</td></tr>
+                        <tr><td>COM</td><td>252</td><td>962</td><td>Intro to WEB-technology</td><td class="col-grade">A-</td><td class="col-cred">4</td></tr>
+                        <tr><td>ENG</td><td>244</td><td>1134</td><td>English for Specific Purposes (elective)</td><td class="col-grade">B+</td><td class="col-cred">4</td></tr>
+                        <tr><td>Gkg</td><td>204</td><td>1103</td><td>Geography of Kyrgyzstan</td><td class="col-grade">C+</td><td class="col-cred">2</td></tr>
+                        <tr><td>HIS</td><td>113</td><td>4773</td><td>History of Kyrgyzstan</td><td class="col-grade">B</td><td class="col-cred">2</td></tr>
+                        <tr><td>ISE</td><td>244</td><td>1104</td><td>Interdiscip State Exam (History, Kyrgyz, Geo)</td><td class="col-grade">C</td><td class="col-cred">2</td></tr>
+                        <tr><td>KRL</td><td>224</td><td>1245</td><td>Kyrgyz language and literature</td><td class="col-grade">A</td><td class="col-cred">3</td></tr>
+                        <tr><td>MAN</td><td>101</td><td>612</td><td>Manas studies</td><td class="col-grade">C-</td><td class="col-cred">2</td></tr>
+                        <tr><td>MAT</td><td>224</td><td>1188</td><td>Professional mathematics</td><td class="col-grade">D-</td><td class="col-cred">2</td></tr>
+                        <tr><td>MAT</td><td>242</td><td>750</td><td>Mathematical Analyse I</td><td class="col-grade">D-</td><td class="col-cred">4</td></tr>
+                        <tr><td>OPS</td><td>244</td><td>1190</td><td>Operating Systems</td><td class="col-grade">B</td><td class="col-cred">3</td></tr>
+                        <tr><td>PHT</td><td>202</td><td>772</td><td>Physical training</td><td class="col-grade">P</td><td class="col-cred">2</td></tr>
+                        
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>40,00</span></div>
+                    <div class="summary-item">Earned: <span>42,00</span></div>
+                    <div class="summary-item">Attempted: <span>42,00</span></div>
+                    <div class="summary-item">Points: <span>74,34</span></div>
+                    <div class="summary-item">GPA: <span>1,86</span></div>
+                </div>
+            </div>
+
+            <!-- 2026 Осенний (Fall) -->
+            <div class="semester-card">
+                <div class="semester-header">2026 Осенний (Fall)</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th class="col-abbr">Abbr</th>
+                            <th class="col-num">Number</th>
+                            <th class="col-id">Course ID</th>
+                            <th class="col-name">Course name</th>
+                            <th class="col-grade">Grade</th>
+                            <th class="col-cred">Credits</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>COM</td><td>305</td><td>2010</td><td>Architecture of computer and systems</td><td class="col-grade">*</td><td class="col-cred">4</td></tr>
+                        <tr><td>COM</td><td>361</td><td>814</td><td>Database</td><td class="col-grade">*</td><td class="col-cred">4</td></tr>
+                        <tr><td>COM</td><td>361K</td><td>815</td><td>Database</td><td class="col-grade">*</td><td class="col-cred">1</td></tr>
+                        <tr><td>COM</td><td>375</td><td>1063</td><td>Computer networks</td><td class="col-grade">*</td><td class="col-cred">4</td></tr>
+                        <tr><td>ENG</td><td>305</td><td>988</td><td>English for specific Purposes (electiv)</td><td class="col-grade">*</td><td class="col-cred">4</td></tr>
+                        <tr><td>FB</td><td>305</td><td>1144</td><td>Fundamentals of Business</td><td class="col-grade">*</td><td class="col-cred">2</td></tr>
+                        <tr><td>MAT</td><td>331</td><td>826</td><td>Mathematical Analyse II</td><td class="col-grade">*</td><td class="col-cred">4</td></tr>
+                    </tbody>
+                </table>
+                <div class="semester-summary">
+                    <div class="summary-item">GPA Credits: <span>0,00</span></div>
+                    <div class="summary-item">Earned: <span>0,00</span></div>
+                    <div class="summary-item">Attempted: <span>0,00</span></div>
+                    <div class="summary-item">Points: <span>0,00</span></div>
+                    <div class="summary-item">GPA: <span>0,00</span></div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Итоговые данные (Cumulative) -->
+        <div class="cumulative-box">
+            <h3>Cumulative:</h3>
+            <div class="cumulative-row"><span>GPA Credits:</span> <strong>147,00</strong></div>
+            <div class="cumulative-row"><span>Earned Credits:</span> <strong>151,00</strong></div>
+            <div class="cumulative-row"><span>Attempted Credits:</span> <strong>157,00</strong></div>
+            <div class="cumulative-row"><span>Quality Points:</span> <strong>217,49</strong></div>
+            <div class="cumulative-row" style="border-top: 1px dashed #ccc; margin-top: 5px; padding-top: 5px;">
+                <span>Total GPA:</span> <strong style="color: #002D62; font-size: 16px;">1,38</strong>
+            </div>
+        </div>
+    </div>
+
+    <!-- Футер -->
+    <footer>
+        © 2026 - IUCA
+    </footer>
+
+</body>
+</html>
